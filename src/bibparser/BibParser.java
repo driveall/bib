@@ -27,12 +27,7 @@ public class BibParser {
         while((s = reader.readLine()) != null){
             s = s.trim().toLowerCase();
             if(s.startsWith("author")){
-                s = s.substring(6);
-                s = s.trim();
-                if(s.contains(author))
-                    flag = true;
-                else
-                    flag = false;
+                flag = s.contains(author);
             }
             if(s.startsWith("title") && flag){
                 s = s.substring(s.indexOf('=')+1);
@@ -42,6 +37,7 @@ public class BibParser {
                 while(s.endsWith("\"") || s.endsWith("}") || s.endsWith(","))
                     s = s.substring(0, s.length()-1);
                 titles.add(s);
+                flag = false;
             }
         }
         reader.close();
