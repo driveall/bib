@@ -1,21 +1,11 @@
 package bibparser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
 public class BibParser {
 
-    public static void main(String[] args) throws FileNotFoundException, IOException {
+    public static void main(String[] args) throws IOException {
         System.out.println("Enter author name:");
         String author = new Scanner(System.in).nextLine().toLowerCase();
         File f = new File("big.bib");
@@ -36,6 +26,7 @@ public class BibParser {
                     s = s.substring(1);
                 while(s.endsWith("\"") || s.endsWith("}") || s.endsWith(","))
                     s = s.substring(0, s.length()-1);
+                s = s.trim();
                 titles.add(s);
                 flag = false;
             }
@@ -45,38 +36,35 @@ public class BibParser {
         //filling words map
         for(String title : titles){
             while(true){
+                String word;
                 if(title.indexOf(' ') != -1){
-                    String word = title.substring(0, title.indexOf(' '));
-                    if(words.get(word) == null){
-                        words.put(word, 1);
-                    }else{
-                        Integer oldWordCounter = words.get(word);
-                        oldWordCounter++;
-                        words.remove(word);
-                        words.put(word, oldWordCounter);
-                    }
+                    word = title.substring(0, title.indexOf(' '));
                     title = title.substring(title.indexOf(' ')+1);
+                } else word = title;
+                if (words.get(word) == null) {
+                    words.put(word, 1);
                 }else{
-                    if(words.get(title) == null){
-                        words.put(title, 1);
-                    }else{
-                        Integer oldWordCounter = words.get(title);
-                        oldWordCounter++;
-                        words.remove(title);
-                        words.put(title, oldWordCounter);
-                    }
-                    break;
+                    Integer oldWordCounter = words.get(word);
+                    oldWordCounter++;
+                    words.remove(word);
+                    words.put(word, oldWordCounter);
                 }
+                if (word.equals(title)) break;
             }
         }
         List<String> result = new LinkedList<>();
-        //forming result
-        Integer[] wordsUsedTimes = words.values().toArray(new Integer[words.values().size()]);
+        //forming result words list
+        Integer[] wordsUsedTimes = words.values().toArray(new Integer[0]);
         Arrays.sort(wordsUsedTimes);
-        Integer barrier = wordsUsedTimes[wordsUsedTimes.length/4*3];
-        for(String w : words.keySet()){
-            if(words.get(w) >= barrier){
-                result.add(w);
+        List<Integer> usages = new LinkedList<>();
+        for (int i = wordsUsedTimes.length - 1; i >= wordsUsedTimes.length / 4 * 3; i--) {
+            usages.add(wordsUsedTimes[i]);
+        }
+        for (String word : words.keySet()) {
+            Integer times = words.get(word);
+            if (usages.contains(times)) {
+                result.add(word);
+                usages.remove(times);
             }
         }
         //filling titles file
